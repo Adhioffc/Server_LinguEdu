@@ -13,7 +13,12 @@ Route::get('/check', function () {
 
 // Auth public
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/registrasi', [AuthController::class, 'registrasiKursus']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/paket', [AuthController::class, 'paket']);
+Route::get('/bahasa', [AuthController::class, 'bahasa']);
+Route::get('/kursus', [AuthController::class, 'kursus']);
+
 
 // Versi API
 Route::prefix('/admin')->group(function () {
@@ -32,5 +37,6 @@ Route::prefix('/admin')->group(function () {
 
         Route::post('/logout', [AuthController::class, 'logout']);
     });
+
 
 });

@@ -20,11 +20,12 @@ class Kursus extends Model
 
     public function bahasa()
     {
-        return $this->belongsTo(Bahasa::class, 'id_bahasa', 'id_bahasa');
+        return $this->belongsTo(Bahasa::class, 'id_bahasa', 'id');
     }
 
     public function paket()
     {
-        return $this->belongsTo(Paket::class, 'id_paket', 'id_paket');
+        // foreign key: id_paket (di kursus), owner key: id (di paket)
+        return $this->belongsTo(Paket::class, 'id_paket', 'id');
     }
 }

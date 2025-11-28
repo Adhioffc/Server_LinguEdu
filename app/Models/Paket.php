@@ -10,7 +10,6 @@ class Paket extends Model
     use HasFactory;
 
     protected $table = 'paket';
-    protected $primaryKey = 'id_paket';
 
     protected $fillable = [
         'nama_paket',
@@ -20,6 +19,7 @@ class Paket extends Model
 
     public function kursus()
     {
-        return $this->hasMany(Kursus::class, 'id_paket', 'id_paket');
+        // foreign key di tabel kursus = id_paket, ref ke paket.id
+        return $this->hasMany(Kursus::class, 'id_paket', 'id');
     }
 }

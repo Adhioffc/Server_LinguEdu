@@ -22,4 +22,18 @@ class RegistrasiKursus extends Model
     ];
 
     public $timestamps = true;
+    public function admin()
+    {
+        return $this->belongsTo(User::class, 'id_admin', 'id');
+    }
+
+    public function member()
+    {
+        return $this->belongsTo(User::class, 'id_member', 'id');
+    }
+
+    public function course()
+    {
+        return $this->belongsTo(Kursus::class, 'id_course', 'id_course');
+    }
 }
