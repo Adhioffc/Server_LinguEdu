@@ -32,13 +32,15 @@ class AuthController extends Controller
             'data' => $bahasa
         ]);
     }
+    // /api/registrasi  (dipanggil FE saat step 3 submit)
     public function registrasiKursus(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6',
-            'id_course' => 'required|exists:kursus,id_course',
+            'id_paket' => 'required|exists:paket,id',
+            'id_bahasa' => 'required|exists:bahasa,id',
             'metode_bayar' => 'required|string',
             'bukti_byr' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
@@ -46,40 +48,47 @@ class AuthController extends Controller
         DB::beginTransaction();
 
         try {
-            // 1. Buat user baru dengan role MEMBER
+            // 1. User baru (member)
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'role' => 'member',                // <-- ini kunci
+                'role' => 'member',
             ]);
 
-            // 2. Ambil kursus + paket untuk dapat harga
-            $course = Kursus::with('paket')->findOrFail($request->id_course);
+            // 2. Ambil paket & bahasa
+            $paket = Paket::findOrFail($request->id_paket);
+            $bahasa = Bahasa::findOrFail($request->id_bahasa);
 
-            if (!$course->paket) {
-                throw new \Exception('Kursus belum terhubung dengan paket (id_paket null).');
-            }
+            // 3. Cari / buat kursus (kombinasi paket + bahasa)
+            $course = Kursus::firstOrCreate(
+                [
+                    'id_paket' => $paket->id,
+                    'id_bahasa' => $bahasa->id,
+                ],
+                [
+                    'deskripsi' => "Kursus {$bahasa->nama_bahasa} - Paket {$paket->nama_paket}",
+                ]
+            );
+
+            $course->load('paket', 'bahasa');
 
             $totalBayar = $course->paket->harga;
 
-            // 3. Ambil admin dari tabel users
-            // opsi 1: berdasarkan role
+            // 4. Ambil admin
             $admin = User::where('role', 'admin')->first();
+            $idAdmin = $admin?->id ?? null;
 
-            // atau kalau mau spesifik email:
-            // $admin = User::where('email', 'Admin@gmail.com')->first();
-
-            // 4. Upload bukti bayar (opsional)
+            // 5. Upload bukti bayar
             $pathBukti = null;
             if ($request->hasFile('bukti_byr')) {
                 $pathBukti = $request->file('bukti_byr')
-                    ->store('bukti_pembayaran', 'public');
+                    ->store('foto_bukti', 'public'); // storage/app/public/foto_bukti
             }
 
-            // 5. Insert ke tabel registrasi_kursus
+            // 6. Simpan ke registrasi_kursus
             $registrasi = RegistrasiKursus::create([
-                'id_admin' => $admin?->id,           // bisa null kalau belum ada admin
+                'id_admin' => $idAdmin,
                 'id_member' => $user->id,
                 'id_course' => $course->id_course,
                 'tgl_trans' => now(),
@@ -87,7 +96,7 @@ class AuthController extends Controller
                 'total_byr' => $totalBayar,
                 'bukti_byr' => $pathBukti,
                 'progress' => 0,
-                'level' => $course->paket->nama_paket,
+                'level' => $paket->nama_paket,
             ]);
 
             DB::commit();
@@ -95,7 +104,7 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'Registrasi berhasil',
                 'user' => $user,
-                'kursus' => $course->load('bahasa', 'paket'),
+                'kursus' => $course,      // sudah include bahasa & paket
                 'registrasi' => $registrasi,
             ], 201);
 
@@ -108,7 +117,6 @@ class AuthController extends Controller
             ], 500);
         }
     }
-
 
 
     public function register(Request $request)

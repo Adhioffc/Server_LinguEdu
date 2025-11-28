@@ -13,10 +13,13 @@ Route::get('/check', function () {
 
 // Auth public
 Route::post('/register', [AuthController::class, 'register']);
+// Registrasi kursus (ini yang dipakai FE)
 Route::post('/registrasi', [AuthController::class, 'registrasiKursus']);
 Route::post('/login', [AuthController::class, 'login']);
+// Data master
 Route::get('/paket', [AuthController::class, 'paket']);
 Route::get('/bahasa', [AuthController::class, 'bahasa']);
+// Kursus (join paket + bahasa)
 Route::get('/kursus', [AuthController::class, 'kursus']);
 
 
