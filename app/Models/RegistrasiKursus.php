@@ -36,4 +36,5 @@ class RegistrasiKursus extends Model
     {
         return $this->belongsTo(Kursus::class, 'id_course', 'id_course');
     }
+    
 }

@@ -12,9 +12,14 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::all();
+        // $users = User::all();
+
+        // return response()->json($users);
+        // ikutkan registrasi terakhir (buat bukti_byr)
+        $users = User::with('latestRegistrasi')->get();
 
         return response()->json($users);
+
     }
     // PATCH /api/admin/users/{id}/toggle-verify
     public function toggleVerify($id)

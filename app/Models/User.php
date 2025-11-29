@@ -47,4 +47,14 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+//     public function registrasiKursus()
+// {
+//     return $this->hasMany(\App\Models\RegistrasiKursus::class, 'id_member');
+// }
+
+public function latestRegistrasi()
+{
+    return $this->hasOne(\App\Models\RegistrasiKursus::class, 'id_member')
+                ->latestOfMany('tgl_trans');
+}
 }
