@@ -22,15 +22,18 @@ Route::get('/bahasa', [AuthController::class, 'bahasa']);
 // Kursus (join paket + bahasa)
 Route::get('/kursus', [AuthController::class, 'kursus']);
 
-
 // Versi API
 Route::prefix('/admin')->group(function () {
 
-    Route::get('users', [UserController::class,'index']);
+    Route::get('users', [UserController::class, 'index']);
 
     Route::get('/status', function () {
         return response()->json(['version' => 'v1', 'status' => 'ok']);
     });
+    Route::put('users/{id}', [UserController::class, 'update']);
+    Route::delete('users/{id}', [UserController::class, 'destroy']);
+    Route::patch('users/{id}/toggle-verify', [UserController::class, 'toggleVerify']);
+    Route::post('users', [UserController::class, 'store']);
 
     // Protected routes (harus login pakai Sanctum)
     Route::middleware('auth:sanctum')->group(function () {

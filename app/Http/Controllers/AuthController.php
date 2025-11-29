@@ -173,6 +173,13 @@ class AuthController extends Controller
                 'message' => 'Invalid credentials'
             ], 401);
         }
+        // Hanya MEMBER yang wajib aktif
+        if (($user->role === 'member' || $user->role === null) && is_null($user->email_verified_at)) {
+            return response()->json([
+                'message' => 'Akun Anda belum aktif. Silakan hubungi admin.'
+            ], 403);
+        }
+
 
         // generate token
         $token = $user->createToken('authToken')->plainTextToken;
