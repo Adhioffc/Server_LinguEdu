@@ -22,14 +22,13 @@ class MateriController extends Controller
     {
         $data = $request->validate([
             'id_course' => 'required|exists:kursus,id_course',
-            'level' => 'required|integer|min:1',
+            'level' => 'required|integer|min:1|max:3',   // <= batas 3
             'judul' => 'required|string|max:255',
             'tipe' => 'required|in:video,teori',
             'url_video' => 'nullable|string|max:255',
             'teks_teori' => 'nullable|string',
         ]);
 
-        // Pastikan cuma salah satu yang terisi
         if ($data['tipe'] === 'video') {
             $data['teks_teori'] = null;
         } else {
@@ -52,7 +51,7 @@ class MateriController extends Controller
 
         $data = $request->validate([
             'id_course' => 'sometimes|required|exists:kursus,id_course',
-            'level' => 'sometimes|required|integer|min:1',
+            'level' => 'sometimes|required|integer|min:1|max:3', // <= batas 3
             'judul' => 'sometimes|required|string|max:255',
             'tipe' => 'sometimes|required|in:video,teori',
             'url_video' => 'nullable|string|max:255',
