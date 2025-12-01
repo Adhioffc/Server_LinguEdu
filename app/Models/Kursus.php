@@ -3,12 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Kursus extends Model
 {
-    use HasFactory;
-
     protected $table = 'kursus';
     protected $primaryKey = 'id_course';
 
@@ -25,7 +22,11 @@ class Kursus extends Model
 
     public function paket()
     {
-        // foreign key: id_paket (di kursus), owner key: id (di paket)
         return $this->belongsTo(Paket::class, 'id_paket', 'id');
+    }
+
+    public function materi()
+    {
+        return $this->hasMany(Materi::class, 'id_course', 'id_course');
     }
 }

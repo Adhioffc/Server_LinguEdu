@@ -11,11 +11,15 @@ class Materi extends Model
 
     protected $fillable = [
         'id_course',
+        'level',
         'judul',
         'tipe',
         'url_video',
         'teks_teori',
     ];
 
-    public $timestamps = true;
+    public function course()
+    {
+        return $this->belongsTo(Kursus::class, 'id_course', 'id_course');
+    }
 }

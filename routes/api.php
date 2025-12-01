@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\UserController as ControllersUserController;
 use App\Http\Controllers\BahasaController;
 use App\Http\Controllers\PaketController;
+use App\Http\Controllers\MateriController;
+use App\Http\Controllers\KursusController;
 
 // Cek API
 Route::get('/check', function () {
@@ -22,11 +24,19 @@ Route::post('/login', [AuthController::class, 'login']);
 // Data master
 Route::get('/paket', [AuthController::class, 'paket']);
 Route::get('/bahasa', [AuthController::class, 'bahasa']);
-// Kursus (join paket + bahasa)
-Route::get('/kursus', [AuthController::class, 'kursus']);
+
+
+
 
 // Versi API
 Route::prefix('/admin')->group(function () {
+    // Kursus (join paket + bahasa)
+    Route::get('/kursus', [AuthController::class, 'kursus']);
+    Route::get('kursus', [KursusController::class, 'index']);
+    Route::get('materi', [MateriController::class, 'index']);
+    Route::post('materi', [MateriController::class, 'store']);
+    Route::put('materi/{id_materi}', [MateriController::class, 'update']);
+    Route::delete('materi/{id_materi}', [MateriController::class, 'destroy']);
     //user
     Route::get('users', [UserController::class, 'index']);
     Route::get('/status', function () {
