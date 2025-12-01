@@ -159,4 +159,29 @@ class MateriController extends Controller
             return 'teori';
         return 'kosong';
     }
+    // GET /api/admin/materi/filter?paket=1&bahasa=2&level=1
+    public function filter(Request $request)
+    {
+        $data = $request->validate([
+            'paket' => 'required|exists:paket,id',   // PK paket = id
+            'bahasa' => 'required|exists:bahasa,id',  // PK bahasa = id
+            'level' => 'nullable|integer|min:1|max:3',
+        ]);
+
+        $materi = Materi::with('course.bahasa', 'course.paket')
+            ->whereHas('course', function ($q) use ($data) {
+                $q->where('id_paket', $data['paket'])
+                    ->where('id_bahasa', $data['bahasa']);
+            })
+            ->when(isset($data['level']), function ($q) use ($data) {
+                $q->where('level', $data['level']);
+            })
+            ->orderBy('level')
+            ->orderBy('judul')
+            ->get();
+
+        return response()->json([
+            'data' => $materi,
+        ]);
+    }
 }

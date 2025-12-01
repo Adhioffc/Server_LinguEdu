@@ -20,4 +20,10 @@ class HasilTes extends Model
     ];
 
     public $timestamps = true;
+
+    // Relasi ke kuis
+    public function kuis()
+    {
+        return $this->belongsTo(Kuis::class, 'id_kuis', 'id_kuis');
+    }
 }

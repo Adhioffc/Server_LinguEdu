@@ -10,11 +10,25 @@ class Kuis extends Model
     protected $primaryKey = 'id_kuis';
 
     protected $fillable = [
-        'id_member',
         'id_materi',
         'id_course',
-        'id_admin',
     ];
 
     public $timestamps = true;
+
+    public function materi()
+    {
+        return $this->belongsTo(Materi::class, 'id_materi', 'id_materi');
+    }
+
+    public function course()
+    {
+        return $this->belongsTo(Kursus::class, 'id_course', 'id_course');
+    }
+
+    public function soals()
+    {
+        return $this->hasMany(SoalKuis::class, 'id_kuis', 'id_kuis');
+    }
 }
+

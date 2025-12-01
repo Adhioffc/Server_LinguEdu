@@ -10,6 +10,8 @@ use App\Http\Controllers\BahasaController;
 use App\Http\Controllers\PaketController;
 use App\Http\Controllers\MateriController;
 use App\Http\Controllers\KursusController;
+use App\Http\Controllers\KuisController;
+use App\Http\Controllers\HasilTesController;
 
 // Cek API
 Route::get('/check', function () {
@@ -37,6 +39,19 @@ Route::prefix('/admin')->group(function () {
     Route::post('materi', [MateriController::class, 'store']);
     Route::put('materi/{id_materi}', [MateriController::class, 'update']);
     Route::delete('materi/{id_materi}', [MateriController::class, 'destroy']);
+    Route::get('materi/filter', [MateriController::class, 'filter']);
+    // KUIS
+    Route::get('kuis', [KuisController::class, 'index']);
+    Route::get('kuis/{id_kuis}', [KuisController::class, 'show']);
+    Route::post('kuis', [KuisController::class, 'store']);
+    Route::post('kuis/{id_kuis}/soal', [KuisController::class, 'addSoal']);
+    Route::put('soal-kuis/{id}', [KuisController::class, 'updateSoal']);
+    Route::delete('soal-kuis/{id}', [KuisController::class, 'deleteSoal']);
+    Route::delete('kuis/{id_kuis}', [KuisController::class, 'destroy']);
+
+    // HASIL TES
+    Route::get('hasil-tes', [HasilTesController::class, 'index']);
+    Route::post('kuis/{id_kuis}/submit', [HasilTesController::class, 'submit']);
     //user
     Route::get('users', [UserController::class, 'index']);
     Route::get('/status', function () {
