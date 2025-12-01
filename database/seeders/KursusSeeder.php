@@ -2,39 +2,65 @@
 
 namespace Database\Seeders;
 
+use App\Models\Bahasa;
+use App\Models\Kursus;
+use App\Models\Paket;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class KursusSeeder extends Seeder
 {
     public function run(): void
     {
-        // asumsi:
-        // paket: 1 = Basic, 2 = Intermediate, 3 = Advanced
-        // bahasa: 1 = Inggris, 2 = Jepang, 3 = Korea
+        $bahasaMap = Bahasa::pluck('id', 'nama_bahasa');   // ['Inggris' => 1, ...]
+        $paketMap  = Paket::pluck('id', 'nama_paket');     // ['Basic' => 1, ...]
 
-        DB::table('kursus')->insert([
+        if ($bahasaMap->isEmpty() || $paketMap->isEmpty()) {
+            dump('Seeder Kursus: tabel bahasa/paket masih kosong');
+            return;
+        }
+
+        // ✏️ SESUAIKAN nama2 di bawah dengan isi BahasaSeeder & PaketSeeder-mu
+        $data = [
             [
-                'id_bahasa' => 1,
-                'id_paket' => 2, // Intermediate
+                'bahasa'    => 'Inggris',
+                'paket'     => 'Basic',
+                'deskripsi' => 'Bahasa Inggris Basic',
+            ],
+            [
+                'bahasa'    => 'Inggris',
+                'paket'     => 'Intermediate',
                 'deskripsi' => 'Bahasa Inggris Intermediate',
-                'created_at' => now(),
-                'updated_at' => now(),
             ],
             [
-                'id_bahasa' => 2,
-                'id_paket' => 2,
+                'bahasa'    => 'Jepang',
+                'paket'     => 'Intermediate',
                 'deskripsi' => 'Bahasa Jepang Intermediate',
-                'created_at' => now(),
-                'updated_at' => now(),
             ],
             [
-                'id_bahasa' => 3,
-                'id_paket' => 2,
+                'bahasa'    => 'Korea',
+                'paket'     => 'Intermediate',
                 'deskripsi' => 'Bahasa Korea Intermediate',
-                'created_at' => now(),
-                'updated_at' => now(),
             ],
-        ]);
+        ];
+
+        foreach ($data as $row) {
+            $idBahasa = $bahasaMap[$row['bahasa']] ?? null;
+            $idPaket  = $paketMap[$row['paket']] ?? null;
+
+            if (!$idBahasa || !$idPaket) {
+                dump("Skip kursus '{$row['deskripsi']}' (bahasa/paket belum ada di master)");
+                continue;
+            }
+
+            Kursus::firstOrCreate(
+                [
+                    'id_bahasa' => $idBahasa,
+                    'id_paket'  => $idPaket,
+                ],
+                [
+                    'deskripsi' => $row['deskripsi'],
+                ],
+            );
+        }
     }
 }
