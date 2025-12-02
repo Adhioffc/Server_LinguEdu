@@ -14,8 +14,28 @@ class Sertifikat extends Model
         'id_course',
         'id_member',
         'kode_tes',
-        'format',
+        'format', // bisa path file pdf di storage
     ];
 
     public $timestamps = true;
+
+    public function member()
+    {
+        return $this->belongsTo(User::class, 'id_member', 'id');
+    }
+
+    public function admin()
+    {
+        return $this->belongsTo(User::class, 'id_admin', 'id');
+    }
+
+    public function course()
+    {
+        return $this->belongsTo(Kursus::class, 'id_course', 'id_course');
+    }
+
+    public function uji()
+    {
+        return $this->belongsTo(UjiSertifikasi::class, 'kode_tes', 'kode_tes');
+    }
 }

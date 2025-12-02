@@ -12,6 +12,11 @@ use App\Http\Controllers\MateriController;
 use App\Http\Controllers\KursusController;
 use App\Http\Controllers\KuisController;
 use App\Http\Controllers\HasilTesController;
+use App\Http\Controllers\UjiSertifikasiController;
+use App\Http\Controllers\SoalSertifikasiController;
+// use App\Http\Controllers\SoalPaketController;
+use App\Http\Controllers\TemplateSertifikatController;
+use App\Http\Controllers\AdminDashboardController;
 
 // Cek API
 Route::get('/check', function () {
@@ -28,10 +33,20 @@ Route::get('/paket', [AuthController::class, 'paket']);
 Route::get('/bahasa', [AuthController::class, 'bahasa']);
 
 
-
-
 // Versi API
 Route::prefix('/admin')->group(function () {
+    // UJI SERTIFIKASI (master tes)
+    Route::get('sertifikasi/tes', [UjiSertifikasiController::class, 'index']);
+    Route::post('sertifikasi/tes', [UjiSertifikasiController::class, 'store']);
+    Route::delete('sertifikasi/tes/{kode_tes}', [UjiSertifikasiController::class, 'destroy']);
+
+    // SOAL SERTIFIKASI
+    Route::get('sertifikasi/soal', [SoalSertifikasiController::class, 'index']);
+    Route::get('sertifikasi/soal/{kode_tes}', [SoalSertifikasiController::class, 'byKodeTes']);
+    Route::post('sertifikasi/soal', [SoalSertifikasiController::class, 'store']);     // bulk
+    Route::post('sertifikasi/soal/add', [SoalSertifikasiController::class, 'addSoal']); // 1 soal
+    Route::put('sertifikasi/soal/{id_soal}', [SoalSertifikasiController::class, 'update']);
+    Route::delete('sertifikasi/soal/{id_soal}', [SoalSertifikasiController::class, 'destroy']);
     // Kursus (join paket + bahasa)
     Route::get('/kursus', [AuthController::class, 'kursus']);
     Route::get('kursus', [KursusController::class, 'index']);
@@ -74,6 +89,13 @@ Route::prefix('/admin')->group(function () {
     Route::post('bahasa', [BahasaController::class, 'store']);
     Route::put('bahasa/{id}', [BahasaController::class, 'update']);
     Route::delete('bahasa/{id}', [BahasaController::class, 'destroy']);
+    // Template Sertifikat
+    Route::get('template-sertifikat', [TemplateSertifikatController::class, 'showByCourse']);
+    Route::post('template-sertifikat', [TemplateSertifikatController::class, 'store']);
+    Route::delete('template-sertifikat/{id}', [TemplateSertifikatController::class, 'destroy']);
+    // Dashboard summary
+    // DASHBOARD SUMMARY
+    Route::get('dashboard/summary', [AdminDashboardController::class, 'summary']);
 
     // Protected routes (harus login pakai Sanctum)
     Route::middleware('auth:sanctum')->group(function () {
