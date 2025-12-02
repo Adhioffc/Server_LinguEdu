@@ -22,6 +22,7 @@ use App\Http\Controllers\AdminDashboardController;
 Route::get('/check', function () {
     return response()->json(['message' => 'API is working']);
 });
+Route::get('admin/dashboard/summary', [AdminDashboardController::class, 'summary']);
 
 // Auth public
 Route::post('/register', [AuthController::class, 'register']);
@@ -93,10 +94,6 @@ Route::prefix('/admin')->group(function () {
     Route::get('template-sertifikat', [TemplateSertifikatController::class, 'showByCourse']);
     Route::post('template-sertifikat', [TemplateSertifikatController::class, 'store']);
     Route::delete('template-sertifikat/{id}', [TemplateSertifikatController::class, 'destroy']);
-    // Dashboard summary
-    // DASHBOARD SUMMARY
-    Route::get('dashboard/summary', [AdminDashboardController::class, 'summary']);
-
     // Protected routes (harus login pakai Sanctum)
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/profile', function (Request $request) {

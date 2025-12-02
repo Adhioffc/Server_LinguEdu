@@ -13,73 +13,75 @@ class AdminDashboardController extends Controller
      */
     public function summary()
     {
-        // 1) Member belum aktif
-        $pendingVerifications = User::where('role', 'member')
-            ->whereNull('email_verified_at')
-            ->count();
+        try {
+            $pendingVerifications = User::where('role', 'member')
+                ->whereNull('email_verified_at')
+                ->count();
 
-        // 2) Total member
-        $totalMembers = User::where('role', 'member')->count();
+            $totalMembers = User::where('role', 'member')->count();
 
-        // 3) Member baru 7 hari terakhir
-        $newMembersThisWeek = User::where('role', 'member')
-            ->where('created_at', '>=', Carbon::now()->subDays(7))
-            ->count();
+            $newMembersThisWeek = User::where('role', 'member')
+                ->where('created_at', '>=', Carbon::now()->subDays(7))
+                ->count();
 
-        // 4) Statistik paket yang diambil
-        $paketStats = RegistrasiKursus::selectRaw('paket.nama_paket AS label, COUNT(*) AS total')
-            ->join('kursus', 'registrasi_kursus.id_course', '=', 'kursus.id_course')
-            ->join('paket', 'kursus.id_paket', '=', 'paket.id')
-            ->groupBy('paket.nama_paket')
-            ->orderByDesc('total')
-            ->get();
+            $paketStats = RegistrasiKursus::selectRaw('paket.nama_paket AS label, COUNT(*) AS total')
+                ->join('kursus', 'registrasi_kursus.id_course', '=', 'kursus.id_course')
+                ->join('paket', 'kursus.id_paket', '=', 'paket.id')
+                ->groupBy('paket.nama_paket')
+                ->orderByDesc('total')
+                ->get();
 
-        $paketLabels = $paketStats->pluck('label');
-        $paketData   = $paketStats->pluck('total');
+            $paketLabels = $paketStats->pluck('label');
+            $paketData = $paketStats->pluck('total');
 
-        // 5) Statistik bahasa yang diambil
-        $bahasaStats = RegistrasiKursus::selectRaw('bahasa.nama_bahasa AS label, COUNT(*) AS total')
-            ->join('kursus', 'registrasi_kursus.id_course', '=', 'kursus.id_course')
-            ->join('bahasa', 'kursus.id_bahasa', '=', 'bahasa.id')
-            ->groupBy('bahasa.nama_bahasa')
-            ->orderByDesc('total')
-            ->get();
+            $bahasaStats = RegistrasiKursus::selectRaw('bahasa.nama_bahasa AS label, COUNT(*) AS total')
+                ->join('kursus', 'registrasi_kursus.id_course', '=', 'kursus.id_course')
+                ->join('bahasa', 'kursus.id_bahasa', '=', 'bahasa.id')
+                ->groupBy('bahasa.nama_bahasa')
+                ->orderByDesc('total')
+                ->get();
 
-        $bahasaLabels = $bahasaStats->pluck('label');
-        $bahasaData   = $bahasaStats->pluck('total');
+            $bahasaLabels = $bahasaStats->pluck('label');
+            $bahasaData = $bahasaStats->pluck('total');
 
-        // 6) Statistik kombinasi Bahasa + Paket (kursus)
-        $courseStats = RegistrasiKursus::selectRaw("
-                CONCAT(bahasa.nama_bahasa, ' - ', paket.nama_paket) AS label,
-                COUNT(*) AS total
-            ")
-            ->join('kursus', 'registrasi_kursus.id_course', '=', 'kursus.id_course')
-            ->join('bahasa', 'kursus.id_bahasa', '=', 'bahasa.id')
-            ->join('paket', 'kursus.id_paket', '=', 'paket.id')
-            ->groupBy('bahasa.nama_bahasa', 'paket.nama_paket')
-            ->orderByDesc('total')
-            ->get();
+            // HATI2: ini Postgres, pakai operator ||
+            $courseStats = RegistrasiKursus::selectRaw("
+                    (bahasa.nama_bahasa || ' - ' || paket.nama_paket) AS label,
+                    COUNT(*) AS total
+                ")
+                ->join('kursus', 'registrasi_kursus.id_course', '=', 'kursus.id_course')
+                ->join('bahasa', 'kursus.id_bahasa', '=', 'bahasa.id')
+                ->join('paket', 'kursus.id_paket', '=', 'paket.id')
+                ->groupBy('bahasa.nama_bahasa', 'paket.nama_paket')
+                ->orderByDesc('total')
+                ->get();
 
-        $courseLabels = $courseStats->pluck('label');
-        $courseData   = $courseStats->pluck('total');
+            $courseLabels = $courseStats->pluck('label');
+            $courseData = $courseStats->pluck('total');
 
-        return response()->json([
-            'pending_verifications' => $pendingVerifications,
-            'total_members'         => $totalMembers,
-            'new_members_this_week' => $newMembersThisWeek,
+            return response()->json([
+                'pending_verifications' => $pendingVerifications,
+                'total_members' => $totalMembers,
+                'new_members_this_week' => $newMembersThisWeek,
+                'paket' => [
+                    'labels' => $paketLabels,
+                    'data' => $paketData,
+                ],
+                'bahasa' => [
+                    'labels' => $bahasaLabels,
+                    'data' => $bahasaData,
+                ],
+                'kursus' => [
+                    'labels' => $courseLabels,
+                    'data' => $courseData,
+                ],
+            ]);
 
-            'paket' => [
-                'labels' => $paketLabels,
-                'data'   => $paketData,
-            ],
-            'bahasa' => [
-                'labels' => $bahasaLabels,
-                'data'   => $bahasaData,
-            ],
-            'kursus' => [
-                'labels' => $courseLabels,
-                'data'   => $courseData,
-            ],
-        ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Error dashboard summary',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 }
