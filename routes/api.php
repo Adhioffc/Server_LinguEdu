@@ -17,6 +17,8 @@ use App\Http\Controllers\SoalSertifikasiController;
 // use App\Http\Controllers\SoalPaketController;
 use App\Http\Controllers\TemplateSertifikatController;
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\ProfileController;
+
 
 // Cek API
 Route::get('/check', function () {
@@ -103,5 +105,10 @@ Route::prefix('/admin')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
     });
 
+    // EDIT PROFILE
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::put('/profile', [ProfileController::class, 'update']);
+});
 
 });
