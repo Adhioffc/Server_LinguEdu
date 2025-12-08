@@ -168,4 +168,40 @@ class KuisController extends Controller
             'message' => 'Kuis dihapus',
         ]);
     }
+
+    // ==========================================
+    // KHUSUS UNTUK MEMBER (FRONTEND)
+    // ==========================================
+
+    public function showBySlug($slug)
+    {
+        $judul = str_replace('-', ' ', $slug);
+
+        // 1. Cari Materinya dulu
+        $materi = Materi::where('judul', 'ILIKE', $judul)->first();
+
+        if (!$materi) {
+            return response()->json(['message' => 'Materi tidak ditemukan'], 404);
+        }
+
+        // 2. Cari Kuis berdasarkan materi tersebut + ambil soalnya
+        // Perhatikan: Saya pakai 'soals' karena di fungsi index() kamu pakai 'soals'
+        $kuis = Kuis::with('soals')
+            ->where('id_materi', $materi->id_materi)
+            ->first();
+
+        if (!$kuis) {
+            return response()->json(['message' => 'Kuis belum tersedia'], 404);
+        }
+
+        // 3. Bungkus data agar enak dibaca JS Frontend
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'materi' => $materi, // Kirim info materi juga buat judul
+                'kuis_info' => $kuis,
+                'soal' => $kuis->soals // Ini array pertanyaannya
+            ]
+        ]);
+    }
 }

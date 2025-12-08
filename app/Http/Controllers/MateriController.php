@@ -7,6 +7,7 @@ use App\Models\Kursus;
 use App\Models\Paket;
 use App\Models\Bahasa;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class MateriController extends Controller
 {
@@ -182,6 +183,68 @@ class MateriController extends Controller
 
         return response()->json([
             'data' => $materi,
+        ]);
+    }
+
+    // ==========================================
+    // KHUSUS UNTUK MEMBER (FRONTEND)
+    // ==========================================
+    public function memberIndex()
+    {
+        // 1. Ambil semua materi dari Database
+        // Kamu bisa memfilter berdasarkan paket/bahasa user nanti.
+        // Untuk sekarang, kita ambil semua dulu biar tampil.
+        $semuaMateri = Materi::orderBy('level')->get();
+
+        // 2. Pisahkan Level 1, 2, dan 3
+        // Kita "Map" (ubah format) datanya supaya cocok sama View kamu yang pakai array ['title']
+        $materiLevel1 = $semuaMateri->where('level', 1)->map(function ($item) {
+            return [
+                'title' => $item->judul,
+                'desc'  => Str::limit(strip_tags($item->teks_teori), 100) ?? 'Belajar via Video', // Ambil cuplikan teks
+                'img'   => 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=80', // Gambar default dulu
+                'progress' => 0, // Nanti kita ambil dari tabel progress, sekarang 0 dulu biar jujur
+                'slug'  => Str::slug($item->judul, '-') // Buat link url
+            ];
+        });
+
+        $materiLevel2 = $semuaMateri->where('level', 2)->map(function ($item) {
+            return [
+                'title' => $item->judul,
+                'desc'  => Str::limit(strip_tags($item->teks_teori), 100) ?? 'Lanjutan',
+                'img'   => 'https://images.unsplash.com/photo-1593642634367-d91a135587b5?auto=format&fit=crop&w=800&q=80',
+                'progress' => 0,
+                'slug'  => Str::slug($item->judul, '-')
+            ];
+        });
+
+        // 3. Kirim ke View (member/materi/index.blade.php)
+        // Pastikan nama view-nya sesuai dengan folder kamu
+        return view('member.materi.index', [
+            'materiLevel1' => $materiLevel1,
+            'materiLevel2' => $materiLevel2
+        ]);
+    }
+
+    public function showBySlug($slug)
+    {
+        // 1. Ubah slug URL "introduction-to-programming" jadi "Introduction To Programming"
+        $judul = str_replace('-', ' ', $slug);
+
+        // 2. Cari di Database (Pakai ILIKE biar tidak sensitif huruf besar/kecil di Postgres)
+        $materi = Materi::where('judul', 'ILIKE', $judul)->first();
+
+        if (!$materi) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Materi tidak ditemukan'
+            ], 404);
+        }
+
+        // 3. Kembalikan data
+        return response()->json([
+            'status' => 'success',
+            'data' => $materi
         ]);
     }
 }

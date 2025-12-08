@@ -46,7 +46,7 @@ class HasilTesController extends Controller
         $kuis = Kuis::with('soals')->findOrFail($id_kuis);
 
         $data = $request->validate([
-            'id_member' => 'required|exists:users,id',
+            'id_member' => 'required|integer',
             'answers' => 'required|array|min:1',
             'answers.*.id_soal_kuis' => 'required|integer',
             'answers.*.jawaban' => 'required|string',

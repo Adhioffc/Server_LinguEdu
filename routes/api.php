@@ -33,6 +33,13 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/paket', [AuthController::class, 'paket']);
 Route::get('/bahasa', [AuthController::class, 'bahasa']);
 
+// ==========================================
+// 🔓 PUBLIC ROUTES (UNTUK MEMBER/FRONTEND)
+// ==========================================
+Route::get('/materi/{slug}', [MateriController::class, 'showBySlug']);
+Route::get('/kuis/{slug}', [KuisController::class, 'showBySlug']);
+// TAMBAHAN BARU: API Submit Kuis
+Route::post('/kuis/{id_kuis}/submit', [HasilTesController::class, 'submit']);
 
 // Versi API
 Route::prefix('/admin')->group(function () {
