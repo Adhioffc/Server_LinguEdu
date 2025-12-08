@@ -6,6 +6,7 @@ use App\Models\HasilTes;
 use App\Models\Kuis;
 use App\Models\Materi;
 use App\Models\RegistrasiKursus;
+use App\Models\RiwayatMateri; // ✅ TAMBAHAN 1: Import Model ini
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -33,14 +34,6 @@ class HasilTesController extends Controller
     }
 
     // POST /api/admin/kuis/{id_kuis}/submit
-    // body:
-    // {
-    //   "id_member": 1,
-    //   "answers": [
-    //     { "id_soal_kuis": 10, "jawaban": "apple" },
-    //     { "id_soal_kuis": 11, "jawaban": "small" }
-    //   ]
-    // }
     public function submit(Request $request, $id_kuis)
     {
         $kuis = Kuis::with('soals')->findOrFail($id_kuis);
@@ -78,7 +71,10 @@ class HasilTesController extends Controller
 
         $skorFloat = ($benar / $total) * 100;
         $skor = (int) round($skorFloat);
-        $desc = $skor >= 60 ? 'Lulus' : 'Tidak lulus';
+
+        // Batas kelulusan (bisa diubah, misal 60 atau 70)
+        $isLulus = $skor >= 60;
+        $desc = $isLulus ? 'Lulus' : 'Tidak lulus';
 
         DB::beginTransaction();
 
@@ -96,6 +92,20 @@ class HasilTesController extends Controller
 
             // update progress registrasi_kursus
             $this->updateProgress($idMember, $kuis->id_course);
+
+            // ✅ TAMBAHAN 2: UPDATE RIWAYAT MATERI JIKA LULUS
+            if ($isLulus) {
+                RiwayatMateri::updateOrCreate(
+                    [
+                        'id_member' => $idMember,
+                        'id_materi' => $kuis->id_materi // Pastikan tabel kuis punya kolom id_materi
+                    ],
+                    [
+                        'has_passed_quiz' => true,
+                        'is_completed' => true // Sekalian tandai completed (berjaga-jaga)
+                    ]
+                );
+            }
 
             DB::commit();
 

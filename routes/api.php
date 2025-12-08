@@ -40,6 +40,8 @@ Route::get('/bahasa', [AuthController::class, 'bahasa']);
 // ==========================================
 Route::get('/materi/{slug}', [MateriController::class, 'showBySlug']);
 Route::get('/kuis/{slug}', [KuisController::class, 'showBySlug']);
+Route::get('/member/materi-list', [MateriController::class, 'getMateriForMember']);
+Route::post('/member/level-up', [MateriController::class, 'levelUp']);
 // TAMBAHAN BARU: API Submit Kuis
 Route::post('/kuis/{id_kuis}/submit', [HasilTesController::class, 'submit']);
 
@@ -65,6 +67,7 @@ Route::prefix('/admin')->group(function () {
     Route::put('materi/{id_materi}', [MateriController::class, 'update']);
     Route::delete('materi/{id_materi}', [MateriController::class, 'destroy']);
     Route::get('materi/filter', [MateriController::class, 'filter']);
+
     // KUIS
     Route::get('kuis', [KuisController::class, 'index']);
     Route::get('kuis/{id_kuis}', [KuisController::class, 'show']);

@@ -6,6 +6,8 @@ use App\Models\Materi;
 use App\Models\Kursus;
 use App\Models\Paket;
 use App\Models\Bahasa;
+use App\Models\RiwayatMateri;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -245,6 +247,103 @@ class MateriController extends Controller
         return response()->json([
             'status' => 'success',
             'data' => $materi
+        ]);
+    }
+
+    // ==========================================
+    // KHUSUS UNTUK MEMBER (PROGRESS & LIST)
+    // ==========================================
+    public function getMateriForMember(Request $request)
+    {
+        // 1. Ambil ID Member
+        // Idealnya pakai $request->user()->id dari token.
+        // Tapi untuk sementara kita terima input 'id_member' dari frontend biar gampang debug.
+        $idMember = $request->query('id_member');
+
+        if (!$idMember) {
+            return response()->json(['message' => 'ID Member diperlukan'], 400);
+        }
+
+        // 2. Ambil Semua Materi
+        $semuaMateri = Materi::with('course')->orderBy('level')->get();
+
+        // 3. Ambil Riwayat User Ini
+        $riwayat = RiwayatMateri::where('id_member', $idMember)->get();
+
+        // 4. Gabungkan Data (Mapping)
+        $data = $semuaMateri->map(function($item) use ($riwayat) {
+            // Cek apakah materi ini ada di riwayat user
+            $history = $riwayat->where('id_materi', $item->id_materi)->first();
+
+            // Logic Progress:
+            // Kalau ada history & completed = 100%
+            // Kalau gak ada = 0%
+            $progress = 0;
+            if ($history) {
+                if ($history->is_completed) $progress += 50; // Bobot Baca
+                if ($history->has_passed_quiz) $progress += 50; // Bobot Kuis
+            }
+
+            return [
+                'id_materi' => $item->id_materi,
+                'judul' => $item->judul,
+                'level' => $item->level,
+                'teks_teori' => $item->teks_teori,
+                'url_video' => $item->url_video,
+                'progress' => $progress,
+                'is_unlocked' => true, // Nanti kita tambah logic level disini (misal: level 2 kebuka kalau level 1 beres)
+                'slug' => Str::slug($item->judul, '-')
+            ];
+        });
+
+        return response()->json(['data' => $data]);
+    }
+
+    // POST /api/member/level-up
+    public function levelUp(Request $request)
+    {
+        // 1. Validasi Input
+        $request->validate([
+            'id_member' => 'required|integer',
+            'current_level' => 'required|integer' // Level yang mau diselesaikan
+        ]);
+
+        $idMember = $request->id_member;
+        $levelSelesai = $request->current_level;
+
+        // 2. Cari Data Registrasi Kursus
+        $reg = \App\Models\RegistrasiKursus::where('id_member', $idMember)->first();
+
+        if (!$reg) {
+            return response()->json(['message' => 'Member tidak terdaftar'], 404);
+        }
+
+        // 3. Cek Syarat: Apakah semua materi di level ini sudah beres?
+        // Ambil ID materi di level ini
+        $materiLevelIni = Materi::whereHas('course', function($q) use ($reg) {
+            $q->where('id_course', $reg->id_course);
+        })->where('level', $levelSelesai)->pluck('id_materi');
+
+        // Hitung berapa yang sudah completed di tabel riwayat
+        $riwayatCount = RiwayatMateri::where('id_member', $idMember)
+            ->whereIn('id_materi', $materiLevelIni)
+            ->where('is_completed', true)
+            ->count();
+
+        // Kalau jumlah yang selesai < jumlah total materi, tolak!
+        if ($riwayatCount < $materiLevelIni->count()) {
+            return response()->json(['message' => 'Eits, selesaikan semua materi & kuis dulu ya!'], 403);
+        }
+
+        // 4. SAH! Naik Level (Update Database)
+        if ($reg->last_unlocked_level <= $levelSelesai) {
+            $reg->last_unlocked_level = $levelSelesai + 1;
+            $reg->save();
+        }
+
+        return response()->json([
+            'message' => 'Selamat! Level ' . ($levelSelesai + 1) . ' berhasil dibuka!',
+            'new_level' => $reg->last_unlocked_level
         ]);
     }
 }
