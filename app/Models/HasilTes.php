@@ -26,4 +26,9 @@ class HasilTes extends Model
     {
         return $this->belongsTo(Kuis::class, 'id_kuis', 'id_kuis');
     }
+    public function member()
+    {
+        // member di sini sebenarnya user dengan role "member"
+        return $this->belongsTo(User::class, 'id_member', 'id');
+    }
 }

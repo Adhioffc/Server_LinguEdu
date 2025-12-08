@@ -22,4 +22,9 @@ class Materi extends Model
     {
         return $this->belongsTo(Kursus::class, 'id_course', 'id_course');
     }
+    public function teori()
+    {
+        return $this->hasOne(\App\Models\Teori::class, 'id_materi', 'id_materi');
+    }
+
 }

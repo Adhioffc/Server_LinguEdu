@@ -20,11 +20,12 @@ class RiwayatMateri extends Model
     // (Opsional) Relasi kalau nanti butuh
     public function member()
     {
-        return $this->belongsTo(Member::class, 'id_member');
+        // "member" di sini = user dengan role "member"
+        return $this->belongsTo(User::class, 'id_member', 'id');
     }
 
     public function materi()
     {
-        return $this->belongsTo(Materi::class, 'id_materi');
+        return $this->belongsTo(Materi::class, 'id_materi', 'id_materi');
     }
 }

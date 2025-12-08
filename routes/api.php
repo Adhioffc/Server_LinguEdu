@@ -18,6 +18,8 @@ use App\Http\Controllers\SoalSertifikasiController;
 use App\Http\Controllers\TemplateSertifikatController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TeoriController;
+
 
 
 // Cek API
@@ -25,6 +27,7 @@ Route::get('/check', function () {
     return response()->json(['message' => 'API is working']);
 });
 Route::get('admin/dashboard/summary', [AdminDashboardController::class, 'summary']);
+Route::get('/teori/{slug}', [TeoriController::class, 'showBySlug']);
 
 // Auth public
 Route::post('/register', [AuthController::class, 'register']);
@@ -106,6 +109,12 @@ Route::prefix('/admin')->group(function () {
     Route::get('template-sertifikat', [TemplateSertifikatController::class, 'showByCourse']);
     Route::post('template-sertifikat', [TemplateSertifikatController::class, 'store']);
     Route::delete('template-sertifikat/{id}', [TemplateSertifikatController::class, 'destroy']);
+    // === TEORI CRUD ===
+    Route::get('teori', [TeoriController::class, 'index']);
+    Route::get('teori/{id}', [TeoriController::class, 'show']);
+    Route::post('teori', [TeoriController::class, 'store']);
+    Route::put('teori/{id}', [TeoriController::class, 'update']);
+    Route::delete('teori/{id}', [TeoriController::class, 'destroy']);
     // Protected routes (harus login pakai Sanctum)
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/profile', function (Request $request) {
@@ -116,9 +125,9 @@ Route::prefix('/admin')->group(function () {
     });
 
     // EDIT PROFILE
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'show']);
-    Route::put('/profile', [ProfileController::class, 'update']);
-});
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/profile', [ProfileController::class, 'show']);
+        Route::put('/profile', [ProfileController::class, 'update']);
+    });
 
 });

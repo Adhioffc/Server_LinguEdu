@@ -97,12 +97,12 @@ class HasilTesController extends Controller
             if ($isLulus) {
                 RiwayatMateri::updateOrCreate(
                     [
-                        'id_member' => $idMember,
-                        'id_materi' => $kuis->id_materi // Pastikan tabel kuis punya kolom id_materi
+                        'id_member' => $idMember,          // ← sekarang nyambung ke users.id
+                        'id_materi' => $kuis->id_materi,   // pastikan kolom ini benar
                     ],
                     [
                         'has_passed_quiz' => true,
-                        'is_completed' => true // Sekalian tandai completed (berjaga-jaga)
+                        'is_completed' => true
                     ]
                 );
             }
