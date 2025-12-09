@@ -8,10 +8,11 @@ use Illuminate\Http\Request;
 class SoalSertifikasiController extends Controller
 {
     // GET /api/admin/sertifikasi/soal
-    // (opsional) semua soal sertifikasi
     public function index()
     {
-        $soal = SoalSertifikasi::orderBy('kode_tes')->orderBy('id_soal')->get();
+        $soal = SoalSertifikasi::orderBy('kode_tes')
+            ->orderBy('id_soal')
+            ->get();
 
         return response()->json([
             'data' => $soal,
@@ -19,7 +20,6 @@ class SoalSertifikasiController extends Controller
     }
 
     // GET /api/admin/sertifikasi/soal/{kode_tes}
-    // List soal untuk satu uji sertifikasi
     public function byKodeTes($kode_tes)
     {
         $soal = SoalSertifikasi::where('kode_tes', $kode_tes)
@@ -28,36 +28,21 @@ class SoalSertifikasiController extends Controller
 
         return response()->json([
             'kode_tes' => (int) $kode_tes,
-            'data' => $soal,
+            'data'     => $soal,
         ]);
     }
 
-    // POST /api/admin/sertifikasi/soal
-    // Buat banyak soal sekaligus
-    // body:
-    // {
-    //   "kode_tes": 1,
-    //   "soal": [
-    //      {
-    //        "pertanyaan": "...",
-    //        "opsi_a": "...",
-    //        "opsi_b": "...",
-    //        "opsi_c": "...",
-    //        "opsi_d": "...",
-    //        "jawaban_benar": "A"
-    //      }
-    //   ]
-    // }
+    // POST /api/admin/sertifikasi/soal  (buat banyak sekaligus – jarang kepakai)
     public function store(Request $request)
     {
         $data = $request->validate([
-            'kode_tes' => 'required|exists:uji_sertifikasi,kode_tes',
-            'soal' => 'required|array|min:1',
-            'soal.*.pertanyaan' => 'required|string',
-            'soal.*.opsi_a' => 'required|string',
-            'soal.*.opsi_b' => 'required|string',
-            'soal.*.opsi_c' => 'required|string',
-            'soal.*.opsi_d' => 'required|string',
+            'kode_tes'           => 'required|exists:uji_sertifikasi,kode_tes',
+            'soal'               => 'required|array|min:1',
+            'soal.*.pertanyaan'  => 'required|string',
+            'soal.*.opsi_a'      => 'required|string',
+            'soal.*.opsi_b'      => 'required|string',
+            'soal.*.opsi_c'      => 'required|string',
+            'soal.*.opsi_d'      => 'required|string',
             'soal.*.jawaban_benar' => 'required|in:A,B,C,D',
         ]);
 
@@ -65,43 +50,32 @@ class SoalSertifikasiController extends Controller
 
         foreach ($data['soal'] as $s) {
             $created[] = SoalSertifikasi::create([
-                'kode_tes' => $data['kode_tes'],
-                'pertanyaan' => $s['pertanyaan'],
-                'opsi_a' => $s['opsi_a'],
-                'opsi_b' => $s['opsi_b'],
-                'opsi_c' => $s['opsi_c'],
-                'opsi_d' => $s['opsi_d'],
+                'kode_tes'      => $data['kode_tes'],
+                'pertanyaan'    => $s['pertanyaan'],
+                'opsi_a'        => $s['opsi_a'],
+                'opsi_b'        => $s['opsi_b'],
+                'opsi_c'        => $s['opsi_c'],
+                'opsi_d'        => $s['opsi_d'],
                 'jawaban_benar' => $s['jawaban_benar'],
             ]);
         }
 
         return response()->json([
             'message' => 'Soal sertifikasi dibuat',
-            'data' => $created,
+            'data'    => $created,
         ], 201);
     }
 
-    // POST /api/admin/sertifikasi/soal/add
-    // Tambah 1 soal ke kode_tes tertentu
-    // body:
-    // {
-    //   "kode_tes": 1,
-    //   "pertanyaan": "...",
-    //   "opsi_a": "...",
-    //   "opsi_b": "...",
-    //   "opsi_c": "...",
-    //   "opsi_d": "...",
-    //   "jawaban_benar": "A"
-    // }
+    // POST /api/admin/sertifikasi/soal/add  (dipakai di Blade admin kamu)
     public function addSoal(Request $request)
     {
         $data = $request->validate([
-            'kode_tes' => 'required|exists:uji_sertifikasi,kode_tes',
-            'pertanyaan' => 'required|string',
-            'opsi_a' => 'required|string',
-            'opsi_b' => 'required|string',
-            'opsi_c' => 'required|string',
-            'opsi_d' => 'required|string',
+            'kode_tes'      => 'required|exists:uji_sertifikasi,kode_tes',
+            'pertanyaan'    => 'required|string',
+            'opsi_a'        => 'required|string',
+            'opsi_b'        => 'required|string',
+            'opsi_c'        => 'required|string',
+            'opsi_d'        => 'required|string',
             'jawaban_benar' => 'required|in:A,B,C,D',
         ]);
 
@@ -109,7 +83,7 @@ class SoalSertifikasiController extends Controller
 
         return response()->json([
             'message' => 'Soal sertifikasi ditambahkan',
-            'data' => $soal,
+            'data'    => $soal,
         ], 201);
     }
 
@@ -119,11 +93,11 @@ class SoalSertifikasiController extends Controller
         $soal = SoalSertifikasi::findOrFail($id_soal);
 
         $data = $request->validate([
-            'pertanyaan' => 'sometimes|required|string',
-            'opsi_a' => 'sometimes|required|string',
-            'opsi_b' => 'sometimes|required|string',
-            'opsi_c' => 'sometimes|required|string',
-            'opsi_d' => 'sometimes|required|string',
+            'pertanyaan'    => 'sometimes|required|string',
+            'opsi_a'        => 'sometimes|required|string',
+            'opsi_b'        => 'sometimes|required|string',
+            'opsi_c'        => 'sometimes|required|string',
+            'opsi_d'        => 'sometimes|required|string',
             'jawaban_benar' => 'sometimes|required|in:A,B,C,D',
         ]);
 
@@ -131,7 +105,7 @@ class SoalSertifikasiController extends Controller
 
         return response()->json([
             'message' => 'Soal sertifikasi diupdate',
-            'data' => $soal,
+            'data'    => $soal,
         ]);
     }
 

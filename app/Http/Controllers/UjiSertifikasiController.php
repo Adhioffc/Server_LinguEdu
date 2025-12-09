@@ -2,23 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Materi;
 use App\Models\UjiSertifikasi;
+use App\Models\Kursus;
+use App\Models\Paket;
+use App\Models\Bahasa;
 use Illuminate\Http\Request;
 
 class UjiSertifikasiController extends Controller
 {
     // GET /api/admin/sertifikasi/tes
-    // List semua uji sertifikasi + materi + course + jumlah soal
     public function index()
     {
         $uji = UjiSertifikasi::with([
-            'materi.course.bahasa',
-            'materi.course.paket',
+            'course.bahasa',
+            'course.paket',
             'soalSertifikasi',
         ])->get();
 
-        // tambahkan field jumlah_soal biar enak di FE
         $uji->each(function ($item) {
             $item->jumlah_soal = $item->soalSertifikasi->count();
         });
@@ -31,35 +31,50 @@ class UjiSertifikasiController extends Controller
     // POST /api/admin/sertifikasi/tes
     // body:
     // {
-    //   "id_materi": 4,
-    //   "kkm": 70  // optional, 0-100
+    //   "id_paket": 1,
+    //   "id_bahasa": 2
     // }
     public function store(Request $request)
     {
         $data = $request->validate([
-            'id_materi' => 'required|exists:materi,id_materi',
-            'kkm' => 'nullable|integer|min:0|max:100',
+            'id_paket'  => 'required|exists:paket,id',
+            'id_bahasa' => 'required|exists:bahasa,id',
+            // tidak ada field kkm lagi
         ]);
 
-        $materi = Materi::with('course')->findOrFail($data['id_materi']);
+        $paket  = Paket::findOrFail($data['id_paket']);
+        $bahasa = Bahasa::findOrFail($data['id_bahasa']);
 
-        $uji = UjiSertifikasi::create([
-            'id_materi' => $materi->id_materi,
-            'id_course' => $materi->id_course,
-            'tgl' => now()->toDateString(),
-            'skor' => $data['kkm'] ?? 70,   // dipakai sebagai passing score (KKM)
-        ]);
+        // Cari / buat kursus untuk kombinasi paket + bahasa
+        $kursus = Kursus::firstOrCreate(
+            [
+                'id_paket'  => $paket->id,
+                'id_bahasa' => $bahasa->id,
+            ],
+            [
+                'deskripsi' => "Kursus {$bahasa->nama_bahasa} - Paket {$paket->nama_paket}",
+            ]
+        );
 
-        $uji->load('materi.course.bahasa', 'materi.course.paket', 'soalSertifikasi');
+        // Satu course = satu ujian sertifikasi
+        // KKM selalu 70
+        $uji = UjiSertifikasi::firstOrCreate(
+            ['id_course' => $kursus->id_course],
+            [
+                'tgl' => now()->toDateString(),
+                'kkm' => 70,
+            ]
+        );
+
+        $uji->load('course.bahasa', 'course.paket', 'soalSertifikasi');
 
         return response()->json([
-            'message' => 'Uji sertifikasi dibuat',
-            'data' => $uji,
+            'message' => 'Uji sertifikasi dibuat / sudah ada',
+            'data'    => $uji,
         ], 201);
     }
 
     // DELETE /api/admin/sertifikasi/tes/{kode_tes}
-    // Hapus uji + semua soal sertifikasinya
     public function destroy($kode_tes)
     {
         $uji = UjiSertifikasi::with('soalSertifikasi')->findOrFail($kode_tes);

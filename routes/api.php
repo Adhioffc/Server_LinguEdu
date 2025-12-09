@@ -19,6 +19,7 @@ use App\Http\Controllers\TemplateSertifikatController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TeoriController;
+use App\Http\Controllers\HasilSertifikasiController;
 
 
 
@@ -48,21 +49,31 @@ Route::post('/member/level-up', [MateriController::class, 'levelUp']);
 // TAMBAHAN BARU: API Submit Kuis
 Route::post('/kuis/{id_kuis}/submit', [HasilTesController::class, 'submit']);
 
+// ================= MEMBER – UJIAN SERTIFIKASI =================
+// Ambil soal sertifikasi untuk member yang login
+// ===== MEMBER – SERTIFIKASI =====
+Route::get('/sertifikasi/soal', [HasilSertifikasiController::class, 'getSoalForMember']);
+Route::post('/sertifikasi/{kode_tes}/submit', [HasilSertifikasiController::class, 'submit']);
+
 // Versi API
 Route::prefix('/admin')->group(function () {
-    // UJI SERTIFIKASI (master tes)
+    // ===== ADMIN – Uji Sertifikasi =====
     Route::get('sertifikasi/tes', [UjiSertifikasiController::class, 'index']);
     Route::post('sertifikasi/tes', [UjiSertifikasiController::class, 'store']);
     Route::delete('sertifikasi/tes/{kode_tes}', [UjiSertifikasiController::class, 'destroy']);
+    Route::put('sertifikasi/tes/{kode_tes}', [UjiSertifikasiController::class, 'update']);
 
-    // SOAL SERTIFIKASI
+
+    // ===== ADMIN – Soal Sertifikasi =====
     Route::get('sertifikasi/soal', [SoalSertifikasiController::class, 'index']);
     Route::get('sertifikasi/soal/{kode_tes}', [SoalSertifikasiController::class, 'byKodeTes']);
-    Route::post('sertifikasi/soal', [SoalSertifikasiController::class, 'store']);     // bulk
-    Route::post('sertifikasi/soal/add', [SoalSertifikasiController::class, 'addSoal']); // 1 soal
+    Route::post('sertifikasi/soal', [SoalSertifikasiController::class, 'store']);
+    Route::post('sertifikasi/soal/add', [SoalSertifikasiController::class, 'addSoal']);
     Route::put('sertifikasi/soal/{id_soal}', [SoalSertifikasiController::class, 'update']);
     Route::delete('sertifikasi/soal/{id_soal}', [SoalSertifikasiController::class, 'destroy']);
-    // Kursus (join paket + bahasa)
+
+    Route::get('hasil-sertifikasi', [HasilSertifikasiController::class, 'index']);
+
     Route::get('/kursus', [AuthController::class, 'kursus']);
     Route::get('kursus', [KursusController::class, 'index']);
     Route::get('materi', [MateriController::class, 'index']);

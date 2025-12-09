@@ -175,33 +175,53 @@ class KuisController extends Controller
 
     public function showBySlug($slug)
     {
-        $judul = str_replace('-', ' ', $slug);
+        // slug sekarang formatnya: "5-grammar"
+        $parts = explode('-', $slug, 2);
+        $idMateri = (int) $parts[0];
 
-        // 1. Cari Materinya dulu
-        $materi = Materi::where('judul', 'ILIKE', $judul)->first();
-
-        if (!$materi) {
-            return response()->json(['message' => 'Materi tidak ditemukan'], 404);
+        if (!$idMateri) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Slug tidak valid.',
+            ], 400);
         }
 
-        // 2. Cari Kuis berdasarkan materi tersebut + ambil soalnya
-        // Perhatikan: Saya pakai 'soals' karena di fungsi index() kamu pakai 'soals'
+        // 1. Ambil materinya berdasarkan ID
+        $materi = Materi::find($idMateri);
+
+        if (!$materi) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Materi tidak ditemukan',
+            ], 404);
+        }
+
+        // 2. Ambil kuis untuk materi ini + semua soal
         $kuis = Kuis::with('soals')
             ->where('id_materi', $materi->id_materi)
             ->first();
 
         if (!$kuis) {
-            return response()->json(['message' => 'Kuis belum tersedia'], 404);
+            // materi ada, tapi kuis memang belum dibuat
+            return response()->json([
+                'status' => 'empty',
+                'message' => 'Kuis belum tersedia',
+                'data' => [
+                    'materi' => $materi,
+                    'soal' => [],
+                ],
+            ], 404);
         }
 
-        // 3. Bungkus data agar enak dibaca JS Frontend
+        // 3. Kalau ada kuis, kirim materinya + info kuis + daftar soal
         return response()->json([
             'status' => 'success',
             'data' => [
-                'materi' => $materi, // Kirim info materi juga buat judul
+                'materi' => $materi,
                 'kuis_info' => $kuis,
-                'soal' => $kuis->soals // Ini array pertanyaannya
-            ]
+                'soal' => $kuis->soals,
+            ],
         ]);
     }
+
 }

@@ -10,18 +10,12 @@ class UjiSertifikasi extends Model
     protected $primaryKey = 'kode_tes';
 
     protected $fillable = [
-        'id_materi',
         'id_course',
         'tgl',
-        'skor',
+        'kkm',      // ← skor user nanti di tabel hasil_sertifikasi
     ];
 
     public $timestamps = true;
-
-    public function materi()
-    {
-        return $this->belongsTo(Materi::class, 'id_materi', 'id_materi');
-    }
 
     public function course()
     {
@@ -38,5 +32,9 @@ class UjiSertifikasi extends Model
         // satu uji bisa punya banyak sertifikat (per member),
         // tapi kalau kamu mau 1:1 silakan pakai hasOne.
         return $this->hasMany(Sertifikat::class, 'kode_tes', 'kode_tes');
+    }
+    public function hasil()
+    {
+        return $this->hasMany(HasilSertifikasi::class, 'kode_tes', 'kode_tes');
     }
 }
