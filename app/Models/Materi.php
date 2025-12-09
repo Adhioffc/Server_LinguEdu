@@ -16,7 +16,9 @@ class Materi extends Model
         'tipe',
         'url_video',
         'teks_teori',
+        'video_path',
     ];
+    protected $appends = ['video_url'];  // ⬅️ biar API otomatis kirim URL lengkap
 
     public function course()
     {
@@ -25,6 +27,13 @@ class Materi extends Model
     public function teori()
     {
         return $this->hasOne(\App\Models\Teori::class, 'id_materi', 'id_materi');
+    }
+    // ⬅️ URL lengkap untuk dipakai di FE
+    public function getVideoUrlAttribute()
+    {
+        return $this->video_path
+            ? asset('storage/' . $this->video_path)
+            : null;
     }
 
 }

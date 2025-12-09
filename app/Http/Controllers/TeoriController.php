@@ -121,25 +121,32 @@ class TeoriController extends Controller
      */
     public function showBySlug($slug)
     {
-        $judul = str_replace('-', ' ', $slug);
+        // slug kita sekarang formatnya: "5-grammar"
+        $parts = explode('-', $slug, 2);
+        $idMateri = (int) $parts[0];
 
-        $materi = Materi::where('judul', 'ILIKE', $judul)->first();
-
-        if (!$materi) {
-            return response()->json(['message' => 'Materi tidak ditemukan'], 404);
+        if (!$idMateri) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Slug tidak valid.',
+            ], 400);
         }
 
-        $teori = Teori::where('id_materi', $materi->id_materi)->first();
+        // ambil materi + relasi teori (lihat relasi di model Materi)
+        $materi = Materi::with('teori')->find($idMateri);
 
-        if (!$teori) {
-            return response()->json(['message' => 'Teori belum diisi untuk materi ini'], 404);
+        if (!$materi) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Materi tidak ditemukan.',
+            ], 404);
         }
 
         return response()->json([
             'status' => 'success',
             'data' => [
                 'materi' => $materi,
-                'teori' => $teori,
+                'teori' => $materi->teori,   // baris di tabel teori (id_materi = 5)
             ],
         ]);
     }
