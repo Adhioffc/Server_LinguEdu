@@ -43,6 +43,7 @@ Route::get('/bahasa', [AuthController::class, 'bahasa']);
 // 🔓 PUBLIC ROUTES (UNTUK MEMBER/FRONTEND)
 // ==========================================
 Route::get('/materi/{slug}', [MateriController::class, 'showBySlug']);
+Route::get('/member/video/{slug}', [MateriController::class, 'showBySlug']);
 Route::get('/kuis/{slug}', [KuisController::class, 'showBySlug']);
 Route::get('/member/materi-list', [MateriController::class, 'getMateriForMember']);
 Route::post('/member/level-up', [MateriController::class, 'levelUp']);
